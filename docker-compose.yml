@@ -1,0 +1,51 @@
+# Development setup
+version: '3'
+
+services:
+  munge:
+    container_name: munge
+    image: munge
+    build:
+      context: .
+      dockerfile: example/Dockerfile
+      target: munge
+    volumes:
+      - mungeconfig:/config
+      - mungedata:/data
+      - mungesocket:/run/munge
+  slurmctl:
+    container_name: slurmctl
+    image: slurm
+    build:
+      context: .
+      dockerfile: example/Dockerfile
+      target: slurm
+    hostname: slurmctl
+    depends_on:
+      - munge
+    volumes:
+      - ./example/slurm.conf:/config/slurm.conf
+      - slurmdata:/data
+      - mungesocket:/run/munge
+  login:
+    container_name: login
+    image: compute
+    build:
+      context: .
+      dockerfile: example/Dockerfile
+      target: compute
+    hostname: login
+    tty: true
+    depends_on:
+      - munge
+      - slurmctl
+    volumes:
+      - ./example/slurm.conf:/config/slurm.conf
+      - mungesocket:/run/munge
+
+volumes:
+  mungeconfig:
+  mungedata:
+  mungesocket:
+    name: mungesocket
+  slurmdata:
