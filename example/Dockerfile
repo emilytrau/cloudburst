@@ -1,7 +1,7 @@
 # Base image
 FROM ubuntu:20.04 as base
 
-RUN apt-get update && apt-get install -y build-essential wget python3 python3-pip libssl-dev
+RUN apt-get update && apt-get install -y build-essential wget python3 python3-pip libssl-dev libjson-c-dev
 
 ## Install MUNGE
 RUN wget https://github.com/dun/munge/releases/download/munge-0.5.14/munge-0.5.14.tar.xz \
@@ -46,9 +46,11 @@ FROM base as slurm
 RUN chown -R slurm /config /data /run
 
 COPY ./client /client
-RUN pip install /client
+RUN pip install -e /client
 
-CMD [ "/opt/slurm/sbin/slurmctld", "-D", "-v" ]
+COPY ./example/slurm.conf /config/slurm.conf
+
+CMD [ "/opt/slurm/sbin/slurmctld", "-D", "-v", "-f", "/config/slurm.conf" ]
 
 # Compute node image
 FROM base as compute
