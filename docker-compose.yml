@@ -1,18 +1,7 @@
 # Development setup
-version: '3'
+version: '3.9'
 
 services:
-  munge:
-    container_name: munge
-    image: munge
-    build:
-      context: .
-      dockerfile: example/Dockerfile
-      target: munge
-    volumes:
-      - mungeconfig:/config
-      - mungedata:/data
-      - mungesocket:/run/munge
   slurmctl:
     container_name: slurmctl
     image: slurm
@@ -21,21 +10,24 @@ services:
       dockerfile: example/Dockerfile
       target: slurm
     hostname: slurmctl
-    depends_on:
-      - munge
+    networks:
+      - clusternet
     volumes:
       - ./example/slurm.conf:/config/slurm.conf
       - ./client:/client
       - slurmdata:/data
-      - mungesocket:/run/munge
+      - mungeconfig:/mungeconfig
   backend:
     container_name: backend
     image: cloudburstserver
     build:
       context: ./server
     command: --reload
+    networks:
+      - clusternet
     volumes:
       - ./server/src:/app
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 8080:8080
   login:
@@ -45,18 +37,24 @@ services:
       context: .
       dockerfile: example/Dockerfile
       target: compute
+    command: su user
     hostname: login
     tty: true
+    privileged: true
     depends_on:
-      - munge
       - slurmctl
+    networks:
+      - clusternet
     volumes:
       - ./example/slurm.conf:/config/slurm.conf
-      - mungesocket:/run/munge
+      - sharedrive:/home/user
+      - mungeconfig:/mungeconfig
 
 volumes:
   mungeconfig:
-  mungedata:
-  mungesocket:
-    name: mungesocket
   slurmdata:
+  sharedrive:
+
+networks:
+  clusternet:
+    name: clusternet

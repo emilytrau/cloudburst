@@ -10,5 +10,5 @@ setup(name='CloudBurstClient',
       url='https://gitlab.erc.monash.edu.au/hpc-team/cloudburst',
       packages=['CloudBurstClient'],
       scripts=['scripts/CloudBurstResume', 'scripts/CloudBurstResumeFail', 'scripts/CloudBurstSuspend'],
-      install_requires=['requests'],
+      install_requires=['requests', 'pyslurm'],
      )
