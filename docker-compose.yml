@@ -25,6 +25,7 @@ services:
       - munge
     volumes:
       - ./example/slurm.conf:/config/slurm.conf
+      - ./client:/client
       - slurmdata:/data
       - mungesocket:/run/munge
   login:

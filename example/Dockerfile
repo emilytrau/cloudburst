@@ -45,6 +45,9 @@ FROM base as slurm
 
 RUN chown -R slurm /config /data /run
 
+COPY ./client /client
+RUN pip install /client
+
 CMD [ "/opt/slurm/sbin/slurmctld", "-D", "-v" ]
 
 # Compute node image
