@@ -28,6 +28,16 @@ services:
       - ./client:/client
       - slurmdata:/data
       - mungesocket:/run/munge
+  backend:
+    container_name: backend
+    image: cloudburstserver
+    build:
+      context: ./server
+    command: --reload
+    volumes:
+      - ./server/src:/app
+    ports:
+      - 8080:8080
   login:
     container_name: login
     image: compute
