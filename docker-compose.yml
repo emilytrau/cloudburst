@@ -17,19 +17,6 @@ services:
       - ./client:/client
       - slurmdata:/data
       - mungeconfig:/mungeconfig
-  backend:
-    container_name: backend
-    image: cloudburstserver
-    build:
-      context: ./server
-    command: --reload
-    networks:
-      - clusternet
-    volumes:
-      - ./server/src:/app
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - 8080:8080
   login:
     container_name: login
     image: compute
@@ -49,6 +36,19 @@ services:
       - ./example/slurm.conf:/config/slurm.conf
       - sharedrive:/home/user
       - mungeconfig:/mungeconfig
+  backend:
+    container_name: backend
+    image: cloudburstserver
+    build:
+      context: ./server
+    command: --reload
+    networks:
+      - clusternet
+    volumes:
+      - ./server/src:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8080:8080
 
 volumes:
   mungeconfig:
