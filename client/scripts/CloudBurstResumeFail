@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from CloudBurstClient import main
+from CloudBurstClient import resume_fail
 
 if __name__ == "__main__":
-  main()
+  resume_fail()
