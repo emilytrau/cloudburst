@@ -53,7 +53,7 @@ RUN chown -R slurm /config /data
 COPY ./client /client
 RUN pip install -e /client
 
-CMD [ "/opt/slurm/sbin/slurmctld", "-c", "-D", "-v", "-f", "/config/slurm.conf" ]
+CMD [ "/opt/slurm/sbin/slurmctld", "-D", "-v", "-f", "/config/slurm.conf" ]
 
 # Compute node image
 FROM base as compute
@@ -61,4 +61,4 @@ FROM base as compute
 RUN mkdir /data/slurmd
 WORKDIR /home/user
 
-CMD [ "/opt/slurm/sbin/slurmd", "-c", "-D", "-v", "-f", "/config/slurm.conf" ]
+CMD [ "/opt/slurm/sbin/slurmd", "-D", "-v", "-f", "/config/slurm.conf" ]

@@ -5,6 +5,14 @@ from pydantic import BaseModel, errors
 app = FastAPI()
 docker_client = docker.from_env()
 
+def destroy_docker_node(name: str):
+    print(f"Trying to destroy node {name}")
+    try:
+        container = docker_client.containers.get(name)
+        container.remove(force=True)
+    except docker.errors.NotFound:
+        print(f"Container {name} doesn't exist")
+
 def create_docker_node(name: str):
     print(f"Trying to create node {name}")
     create_container = False
@@ -29,7 +37,7 @@ def create_docker_node(name: str):
             privileged=True,
             volumes_from=["login"]
         )
-    
+
     info = docker_client.api.inspect_container(name)
     ip = info["NetworkSettings"]["Networks"]["clusternet"]["IPAddress"]
     return ip
@@ -47,14 +55,21 @@ def logger(b: Log):
 
     return {}
 
-class CreateNode(BaseModel):
+class NodeList(BaseModel):
     nodes: list[str]
 
 @app.post("/create")
-def create_nodes(body: CreateNode):
+def create_nodes(body: NodeList):
     ips = {}
     for node in body.nodes:
         ip = create_docker_node(node)
         ips[node] = ip
 
     return {"ipAddresses": ips}
+
+@app.post("/destroy")
+def destroy_nodes(body: NodeList):
+    for node in body.nodes:
+        destroy_docker_node(node)
+    
+    return {}
