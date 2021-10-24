@@ -15,7 +15,6 @@ RUN wget https://github.com/dun/munge/releases/download/munge-0.5.14/munge-0.5.1
     && rm -rf munge-0.5.14.tar.xz munge-0.5.14
 
 ## Install SLURM
-## 20.02.7 is the latest supported by pyslurm
 RUN wget https://download.schedmd.com/slurm/slurm-20.02.7.tar.bz2 \
     && tar xf slurm-20.02.7.tar.bz2 \
     && cd slurm-20.02.7 \
@@ -25,16 +24,6 @@ RUN wget https://download.schedmd.com/slurm/slurm-20.02.7.tar.bz2 \
     && make install \
     && cd .. \
     && rm -rf slurm-20.02.7.tar.bz2 slurm-20.02.7
-
-## Install pyslurm
-RUN wget https://github.com/PySlurm/pyslurm/archive/refs/tags/20-02-0.tar.gz \
-    && tar xf 20-02-0.tar.gz \
-    && cd pyslurm-20-02-0 \
-    && python3 -m pip install cython \
-    && python3 setup.py build --slurm=/opt/slurm \
-    && python3 setup.py install \
-    && cd .. \
-    && rm -rf 20-02-0.tar.gz pyslurm-20-02-0
 
 ## Create system users
 RUN useradd slurm \
