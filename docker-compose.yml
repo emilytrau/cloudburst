@@ -4,7 +4,7 @@ version: '3.9'
 services:
   slurmctl:
     container_name: slurmctl
-    image: slurm
+    image: slurmctl
     build:
       context: .
       dockerfile: example/Dockerfile
@@ -24,7 +24,7 @@ services:
       context: .
       dockerfile: example/Dockerfile
       target: compute
-    command: su user
+    command: bash
     hostname: login
     tty: true
     privileged: true

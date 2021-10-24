@@ -1,6 +1,6 @@
-from fastapi import BackgroundTasks, FastAPI
 import docker
-from pydantic import BaseModel, errors
+from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI()
 docker_client = docker.from_env()
