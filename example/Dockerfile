@@ -26,8 +26,8 @@ RUN wget https://download.schedmd.com/slurm/slurm-20.02.7.tar.bz2 \
     && rm -rf slurm-20.02.7.tar.bz2 slurm-20.02.7
 
 ## Create system users
-RUN useradd slurm \
-    && useradd -ms /bin/bash user
+RUN useradd -ms /bin/bash user \
+    && useradd slurm
 
 ENV PATH="/opt/munge/bin:/opt/slurm/bin:${PATH}"
 COPY ./example/slurm.conf /config/slurm.conf

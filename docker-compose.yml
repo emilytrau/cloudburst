@@ -34,7 +34,7 @@ services:
       - clusternet
     volumes:
       - ./example/slurm.conf:/config/slurm.conf
-      - sharedrive:/home/user
+      - ./home:/home/user
       - mungeconfig:/mungeconfig
   backend:
     container_name: backend
@@ -53,7 +53,6 @@ services:
 volumes:
   mungeconfig:
   slurmdata:
-  sharedrive:
 
 networks:
   clusternet:
