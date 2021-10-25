@@ -1,7 +1,7 @@
 # Base image
 FROM ubuntu:20.04 as base
 
-RUN apt-get update && apt-get install -y build-essential wget python3 python3-pip libssl-dev libjson-c-dev inetutils-ping
+RUN apt-get update && apt-get install -y build-essential wget python3 python3-pip libssl-dev libjson-c-dev
 
 ## Install MUNGE
 RUN wget https://github.com/dun/munge/releases/download/munge-0.5.14/munge-0.5.14.tar.xz \
@@ -25,6 +25,9 @@ RUN wget https://download.schedmd.com/slurm/slurm-20.02.7.tar.bz2 \
     && cd .. \
     && rm -rf slurm-20.02.7.tar.bz2 slurm-20.02.7
 
+## Install extra utilities
+RUN apt-get update && apt-get install -y curl inetutils-ping
+
 ## Create system users
 RUN useradd -ms /bin/bash user \
     && useradd slurm
@@ -39,6 +42,7 @@ FROM base as slurm
 
 RUN chown -R slurm /config /data
 
+COPY ./example/cloudburst.ini /etc/cloudburst/cloudburst.ini
 COPY ./client /client
 RUN pip install -e /client
 

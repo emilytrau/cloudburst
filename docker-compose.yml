@@ -13,9 +13,9 @@ services:
     networks:
       - clusternet
     volumes:
-      - ./example/slurm.conf:/config/slurm.conf
       - ./client:/client
-      - slurmdata:/data
+      - ./example/slurm.conf:/config/slurm.conf
+      - ./example/cloudburst.ini:/etc/cloudburst/cloudburst.ini
       - mungeconfig:/mungeconfig
   login:
     container_name: login
@@ -46,13 +46,13 @@ services:
       - clusternet
     volumes:
       - ./server/src:/app
+      - ./example/cloudburstd.ini:/etc/cloudburst/cloudburstd.ini
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 8080:8080
 
 volumes:
   mungeconfig:
-  slurmdata:
 
 networks:
   clusternet:

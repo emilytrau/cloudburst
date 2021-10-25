@@ -1,11 +1,17 @@
+import configparser
 import os
 import subprocess
 import sys
 import requests
 
+config = configparser.ConfigParser()
+config.read("/etc/cloudburst/cloudburst.ini")
+
+BACKEND = config["config"]["server_address"]
+
 def log(s):
   print(s)
-  requests.post("http://backend:8080/log", json={"log": s})
+  requests.post(f"{BACKEND}/log", json={"log": s})
 
 def parse_hosts(hosts_str):
   hosts = []
@@ -17,7 +23,7 @@ def parse_hosts(hosts_str):
 
 def resume():
   hosts = parse_hosts(sys.argv[1])
-  response = requests.post("http://backend:8080/create", json={"nodes": hosts})
+  response = requests.post(f"{BACKEND}/create", json={"nodes": hosts})
   payload = response.json()
   ips = payload["ipAddresses"]
   for node, ip in ips.items():
@@ -30,4 +36,4 @@ def resume_fail():
 
 def suspend():
   hosts = parse_hosts(sys.argv[1])
-  requests.post("http://backend:8080/destroy", json={"nodes": hosts})
+  requests.post(f"{BACKEND}/destroy", json={"nodes": hosts})
