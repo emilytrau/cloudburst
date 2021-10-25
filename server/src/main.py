@@ -32,14 +32,14 @@ def create_docker_node(name: str):
             detach=True,
             hostname=name,
             name=name,
-            network="clusternet",
+            network="cloudnet",
             remove=True,
             privileged=True,
-            volumes_from=["login"]
+            volumes_from=["cloud-login"]
         )
 
     info = docker_client.api.inspect_container(name)
-    ip = info["NetworkSettings"]["Networks"]["clusternet"]["IPAddress"]
+    ip = info["NetworkSettings"]["Networks"]["cloudnet"]["IPAddress"]
     return ip
 
 @app.get("/")

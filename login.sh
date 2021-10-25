@@ -1,2 +1,2 @@
 #!/bin/sh
-docker-compose exec --user user login bash
+docker-compose exec --user user static-login bash

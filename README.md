@@ -13,6 +13,7 @@ To run the development environment you will need [Docker](https://docs.docker.co
 docker-compose up --build
 # In another terminal
 ./login.sh
+srun -M cloud hostname
 ```
 
 Files placed in the `home/` folder will be mounted under `/home/user` on the login and compute nodes.

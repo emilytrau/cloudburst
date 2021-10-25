@@ -1,7 +1,7 @@
 # Base image
 FROM ubuntu:20.04 as base
 
-RUN apt-get update && apt-get install -y build-essential wget python3 python3-pip libssl-dev libjson-c-dev
+RUN apt-get update && apt-get install -y build-essential wget python3 python3-pip libssl-dev libjson-c-dev libmariadbclient-dev
 
 ## Install MUNGE
 RUN wget https://github.com/dun/munge/releases/download/munge-0.5.14/munge-0.5.14.tar.xz \
@@ -33,7 +33,6 @@ RUN useradd -ms /bin/bash user \
     && useradd slurm
 
 ENV PATH="/opt/munge/bin:/opt/slurm/bin:${PATH}"
-COPY ./example/slurm.conf /config/slurm.conf
 COPY ./example/entrypoint.sh /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
 

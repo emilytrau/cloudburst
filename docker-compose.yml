@@ -2,40 +2,104 @@
 version: '3.9'
 
 services:
-  slurmctl:
-    container_name: slurmctl
-    image: slurmctl
+  accountingdb:
+    container_name: accountingdb
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: accounting
+    networks:
+      - clusternet
+  slurmdb:
+    container_name: slurmdb
+    image: slurm
     build:
       context: .
       dockerfile: example/Dockerfile
       target: slurm
-    hostname: slurmctl
+    command: /opt/slurm/sbin/slurmdbd -D -v
+    hostname: slurmdb
+    depends_on:
+      - accountingdb
+    networks:
+      - clusternet
+    volumes:
+      - ./example/slurmdbd.conf:/config/slurmdbd.conf
+      - mungeconfig:/mungeconfig
+
+  # Cloud cluster
+  cloud-slurmctl:
+    container_name: cloud-slurmctl
+    image: slurm
+    hostname: cloud-slurmctl
+    depends_on:
+      - slurmdb
     networks:
       - clusternet
     volumes:
       - ./client:/client
-      - ./example/slurm.conf:/config/slurm.conf
+      - ./example/slurm.cloud.conf:/config/slurm.conf
       - ./example/cloudburst.ini:/etc/cloudburst/cloudburst.ini
       - mungeconfig:/mungeconfig
-  login:
-    container_name: login
+  cloud-login:
+    container_name: cloud-login
     image: compute
     build:
       context: .
       dockerfile: example/Dockerfile
       target: compute
     command: bash
-    hostname: login
+    hostname: cloud-login
     tty: true
     privileged: true
     depends_on:
-      - slurmctl
+      - cloud-slurmctl
     networks:
       - clusternet
     volumes:
-      - ./example/slurm.conf:/config/slurm.conf
+      - ./example/slurm.cloud.conf:/config/slurm.conf
+      - mungeconfig:/mungeconfig
+
+  # Static cluster
+  static-slurmctl:
+    container_name: static-slurmctl
+    image: slurm
+    hostname: static-slurmctl
+    depends_on:
+      - slurmdb
+    networks:
+      - clusternet
+    volumes:
+      - ./example/slurm.static.conf:/config/slurm.conf
+      - mungeconfig:/mungeconfig
+  static-login:
+    container_name: static-login
+    image: compute
+    command: bash
+    hostname: static-login
+    tty: true
+    privileged: true
+    depends_on:
+      - static-slurmctl
+    networks:
+      - clusternet
+    volumes:
+      - ./example/slurm.static.conf:/config/slurm.conf
       - ./home:/home/user
       - mungeconfig:/mungeconfig
+  static-compute:
+    container_name: static-compute
+    image: compute
+    hostname: compute1
+    privileged: true
+    depends_on:
+      - static-slurmctl
+    networks:
+      - clusternet
+    volumes:
+      - ./example/slurm.static.conf:/config/slurm.conf
+      - ./home:/home/user
+      - mungeconfig:/mungeconfig
+
   backend:
     container_name: backend
     image: cloudburstserver
@@ -56,4 +120,4 @@ volumes:
 
 networks:
   clusternet:
-    name: clusternet
+    name: cloudnet
