@@ -23,8 +23,8 @@ services:
     networks:
       - clusternet
     volumes:
-      - ./example/slurmdbd.conf:/config/slurmdbd.conf
-      - mungeconfig:/mungeconfig
+      - ./example/slurmdbd.conf:/etc/slurmdbd.conf
+      - ./munge:/etc/munge
 
   # Cloud cluster
   cloud-slurmctl:
@@ -37,9 +37,9 @@ services:
       - clusternet
     volumes:
       - ./client:/client
-      - ./example/slurm.cloud.conf:/config/slurm.conf
+      - ./example/slurm.cloud.conf:/etc/slurm.conf
       - ./example/cloudburst.ini:/etc/cloudburst/cloudburst.ini
-      - mungeconfig:/mungeconfig
+      - ./munge:/etc/munge
   cloud-login:
     container_name: cloud-login
     image: compute
@@ -56,8 +56,8 @@ services:
     networks:
       - clusternet
     volumes:
-      - ./example/slurm.cloud.conf:/config/slurm.conf
-      - mungeconfig:/mungeconfig
+      - ./example/slurm.cloud.conf:/etc/slurm.conf
+      - ./munge:/etc/munge
 
   # Static cluster
   static-slurmctl:
@@ -69,8 +69,8 @@ services:
     networks:
       - clusternet
     volumes:
-      - ./example/slurm.static.conf:/config/slurm.conf
-      - mungeconfig:/mungeconfig
+      - ./example/slurm.static.conf:/etc/slurm.conf
+      - ./munge:/etc/munge
   static-login:
     container_name: static-login
     image: compute
@@ -83,9 +83,9 @@ services:
     networks:
       - clusternet
     volumes:
-      - ./example/slurm.static.conf:/config/slurm.conf
+      - ./example/slurm.static.conf:/etc/slurm.conf
       - ./home:/home/user
-      - mungeconfig:/mungeconfig
+      - ./munge:/etc/munge
   static-compute:
     container_name: static-compute
     image: compute
@@ -96,9 +96,9 @@ services:
     networks:
       - clusternet
     volumes:
-      - ./example/slurm.static.conf:/config/slurm.conf
+      - ./example/slurm.static.conf:/etc/slurm.conf
       - ./home:/home/user
-      - mungeconfig:/mungeconfig
+      - ./munge:/etc/munge
 
   backend:
     container_name: backend
@@ -114,9 +114,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 8080:8080
-
-volumes:
-  mungeconfig:
 
 networks:
   clusternet:
