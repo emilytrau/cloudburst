@@ -8,7 +8,7 @@ To run the development environment you will need [Docker](https://docs.docker.co
 
 ```sh
 # First time setup
-./clean-build.sh
+./dev-setup.sh
 
 docker-compose up --build
 # In another terminal
