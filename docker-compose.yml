@@ -57,6 +57,7 @@ services:
       - clusternet
     volumes:
       - ./example/slurm.cloud.conf:/etc/slurm.conf
+      - ./home:/home/user
       - ./munge:/etc/munge
 
   # Static cluster
