@@ -2,49 +2,49 @@ import docker
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-app = FastAPI()
-docker_client = docker.from_env()
+class DockerBackend:
+    def __init__(self) -> None:
+        self.docker_client = docker.from_env()
 
-def destroy_docker_node(name: str):
-    print(f"Trying to destroy node {name}")
-    try:
-        container = docker_client.containers.get(name)
-        container.remove(force=True)
-    except docker.errors.NotFound:
-        print(f"Container {name} doesn't exist")
-
-def create_docker_node(name: str):
-    print(f"Trying to create node {name}")
-    create_container = False
-    try:
-        container = docker_client.containers.get(name)
-        print(f"Container {name} already exists")
-        # Container exists
-        if container.status != "running":
-            container.remove(force=True)
+    def create_node(self, name: str) -> str:
+        print(f"Trying to create node {name}")
+        create_container = False
+        try:
+            container = self.docker_client.containers.get(name)
+            print(f"Container {name} already exists")
+            # Container exists
+            if container.status != "running":
+                container.remove(force=True)
+                create_container = True
+        except docker.errors.NotFound:
             create_container = True
-    except docker.errors.NotFound:
-        create_container = True
-    if create_container:
-        print(f"Starting container {name}")
-        container = docker_client.containers.run(
-            image="compute",
-            detach=True,
-            hostname=name,
-            name=name,
-            network="cloudnet",
-            remove=True,
-            privileged=True,
-            volumes_from=["cloud-login"]
-        )
+        if create_container:
+            print(f"Starting container {name}")
+            container = self.docker_client.containers.run(
+                image="compute",
+                detach=True,
+                hostname=name,
+                name=name,
+                network="cloudnet",
+                remove=True,
+                privileged=True,
+                volumes_from=["cloud-login"]
+            )
 
-    info = docker_client.api.inspect_container(name)
-    ip = info["NetworkSettings"]["Networks"]["cloudnet"]["IPAddress"]
-    return ip
+        info = self.docker_client.api.inspect_container(name)
+        ip = info["NetworkSettings"]["Networks"]["cloudnet"]["IPAddress"]
+        return ip
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+    def destroy_node(self, name: str):
+        print(f"Trying to destroy node {name}")
+        try:
+            container = self.docker_client.containers.get(name)
+            container.remove(force=True)
+        except docker.errors.NotFound:
+            print(f"Container {name} doesn't exist")
+
+app = FastAPI()
+backend = DockerBackend()
 
 class Log(BaseModel):
     log: str
@@ -62,7 +62,7 @@ class NodeList(BaseModel):
 def create_nodes(body: NodeList):
     ips = {}
     for node in body.nodes:
-        ip = create_docker_node(node)
+        ip = backend.create_node(node)
         ips[node] = ip
 
     return {"ipAddresses": ips}
@@ -70,6 +70,6 @@ def create_nodes(body: NodeList):
 @app.post("/destroy")
 def destroy_nodes(body: NodeList):
     for node in body.nodes:
-        destroy_docker_node(node)
+        backend.destroy_node(node)
     
     return {}
