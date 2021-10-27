@@ -24,7 +24,7 @@ services:
       - clusternet
     volumes:
       - ./example/slurmdbd.conf:/etc/slurmdbd.conf
-      - ./munge:/etc/munge
+      - ./munge-db:/etc/munge
 
   # Cloud cluster
   cloud-slurmctl:
@@ -39,7 +39,8 @@ services:
       - ./client:/client
       - ./example/slurm.cloud.conf:/etc/slurm.conf
       - ./example/cloudburst.ini:/etc/cloudburst/cloudburst.ini
-      - ./munge:/etc/munge
+      - ./munge-cloud:/etc/munge
+      - ./munge-db:/etc/munge-db
   cloud-login:
     container_name: cloud-login
     image: compute
@@ -58,7 +59,8 @@ services:
     volumes:
       - ./example/slurm.cloud.conf:/etc/slurm.conf
       - ./home:/home/user
-      - ./munge:/etc/munge
+      - ./munge-cloud:/etc/munge
+      - ./munge-db:/etc/munge-db
 
   # Static cluster
   static-slurmctl:
@@ -71,7 +73,8 @@ services:
       - clusternet
     volumes:
       - ./example/slurm.static.conf:/etc/slurm.conf
-      - ./munge:/etc/munge
+      - ./munge-static:/etc/munge
+      - ./munge-db:/etc/munge-db
   static-login:
     container_name: static-login
     image: compute
@@ -86,7 +89,8 @@ services:
     volumes:
       - ./example/slurm.static.conf:/etc/slurm.conf
       - ./home:/home/user
-      - ./munge:/etc/munge
+      - ./munge-static:/etc/munge
+      - ./munge-db:/etc/munge-db
   static-compute:
     container_name: static-compute
     image: compute
@@ -99,7 +103,8 @@ services:
     volumes:
       - ./example/slurm.static.conf:/etc/slurm.conf
       - ./home:/home/user
-      - ./munge:/etc/munge
+      - ./munge-static:/etc/munge
+      - ./munge-db:/etc/munge-db
 
   backend:
     container_name: backend
