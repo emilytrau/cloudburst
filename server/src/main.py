@@ -1,6 +1,8 @@
+import configparser
 import docker
 from fastapi import FastAPI
 from pydantic import BaseModel
+import sys
 
 class DockerBackend:
     def __init__(self) -> None:
@@ -43,8 +45,20 @@ class DockerBackend:
         except docker.errors.NotFound:
             print(f"Container {name} doesn't exist")
 
+
+config = configparser.ConfigParser()
+config.read("/etc/cloudburst/cloudburstd.ini")
+
+CLOUD = config["config"].get("cloud", "openstack")
+
 app = FastAPI()
-backend = DockerBackend()
+if CLOUD == "docker":
+    backend = DockerBackend()
+elif CLOUD == "openstack":
+    pass
+else:
+    print(f"Unknown cloud backend: {CLOUD}")
+    sys.exit(1)
 
 class Log(BaseModel):
     log: str
