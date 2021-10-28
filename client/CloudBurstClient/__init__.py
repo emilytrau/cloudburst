@@ -25,9 +25,12 @@ def resume():
   hosts = parse_hosts(sys.argv[1])
   response = requests.post(f"{BACKEND}/create", json={"nodes": hosts})
   payload = response.json()
-  ips = payload["ipAddresses"]
-  for node, ip in ips.items():
-    subprocess.run(["scontrol", "update", f"NodeName={node}", f"NodeAddr={ip}"])
+  node_details = payload["nodes"]
+  for name, details in node_details.items():
+    ip = details["ip"]
+    instance_id = details["instance_id"]
+    # TODO: tag instance id in slurm metadata
+    subprocess.run(["scontrol", "update", f"NodeName={name}", f"NodeAddr={ip}"])
   os.system("scontrol reconfigure") # TODO: figure out why we need this
 
 def resume_fail():

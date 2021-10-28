@@ -117,6 +117,7 @@ services:
     volumes:
       - ./server/src:/app
       - ./example/cloudburstd.ini:/etc/cloudburst/cloudburstd.ini
+      - ./example/clouds.yaml:/etc/clouds.yaml
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 8080:8080

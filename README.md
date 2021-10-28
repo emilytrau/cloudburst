@@ -17,3 +17,7 @@ srun -M cloud --ntasks=4 hostname
 ```
 
 Files placed in the `home/` folder will be mounted under `/home/user` on the login and compute nodes.
+
+## Configuring OpenStack
+
+To run the example on OpenStack you must place a `clouds.yaml` credentials file in `example/clouds.yaml` and change `cloud=openstack` in `example/cloudburstd.ini`.
