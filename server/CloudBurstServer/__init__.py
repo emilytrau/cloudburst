@@ -43,14 +43,14 @@ class DockerBackend:
                     "CLOUDBURST_INSTANCE_ID": str(server_id),
                 },
                 name=name,
-                network="cloudnet",
+                network="clusternet",
                 remove=True,
                 privileged=True,
-                volumes_from=["cloud-login"],
+                volumes_from=["login"],
             )
 
         info = self.docker_client.api.inspect_container(name)
-        ip = info["NetworkSettings"]["Networks"]["cloudnet"]["IPAddress"]
+        ip = info["NetworkSettings"]["Networks"]["clusternet"]["IPAddress"]
         return ip, server_id
 
     def destroy_node(self, name: str):

@@ -2,109 +2,53 @@
 version: '3.9'
 
 services:
-  accountingdb:
-    container_name: accountingdb
-    image: mariadb
-    environment:
-      MYSQL_ROOT_PASSWORD: accounting
-    networks:
-      - clusternet
-  slurmdb:
-    container_name: slurmdb
+  slurmctl:
+    container_name: slurmctl
     image: slurm
     build:
       context: .
       dockerfile: example/Dockerfile
       target: slurm
-    command: /opt/slurm/sbin/slurmdbd -D -v
-    hostname: slurmdb
-    depends_on:
-      - accountingdb
-    networks:
-      - clusternet
-    volumes:
-      - ./example/slurmdbd.conf:/etc/slurmdbd.conf
-      - ./munge-db:/etc/munge
-
-  # Cloud cluster
-  cloud-slurmctl:
-    container_name: cloud-slurmctl
-    image: slurm
-    hostname: cloud-slurmctl
-    depends_on:
-      - slurmdb
+    hostname: slurmctl
     networks:
       - clusternet
     volumes:
       - ./client:/client
-      - ./example/slurm.cloud.conf:/etc/slurm.conf
+      - ./example/slurm.conf:/etc/slurm.conf
       - ./example/cloudburst.ini:/etc/cloudburst/cloudburst.ini
-      - ./munge-cloud:/etc/munge
-      - ./munge-db:/etc/munge-db
-  cloud-login:
-    container_name: cloud-login
+      - ./munge:/etc/munge
+  login:
+    container_name: login
     image: compute
     build:
       context: .
       dockerfile: example/Dockerfile
       target: compute
     command: bash
-    hostname: cloud-login
+    hostname: login
     tty: true
     privileged: true
     depends_on:
-      - cloud-slurmctl
+      - slurmctl
     networks:
       - clusternet
     volumes:
-      - ./example/slurm.cloud.conf:/etc/slurm.conf
+      - ./example/slurm.conf:/etc/slurm.conf
       - ./home:/home/user
-      - ./munge-cloud:/etc/munge
-      - ./munge-db:/etc/munge-db
-
-  # Static cluster
-  static-slurmctl:
-    container_name: static-slurmctl
-    image: slurm
-    hostname: static-slurmctl
-    depends_on:
-      - slurmdb
-    networks:
-      - clusternet
-    volumes:
-      - ./example/slurm.static.conf:/etc/slurm.conf
-      - ./munge-static:/etc/munge
-      - ./munge-db:/etc/munge-db
-  static-login:
-    container_name: static-login
-    image: compute
-    command: bash
-    hostname: static-login
-    tty: true
-    privileged: true
-    depends_on:
-      - static-slurmctl
-    networks:
-      - clusternet
-    volumes:
-      - ./example/slurm.static.conf:/etc/slurm.conf
-      - ./home:/home/user
-      - ./munge-static:/etc/munge
-      - ./munge-db:/etc/munge-db
-  static-compute:
-    container_name: static-compute
+      - ./munge:/etc/munge
+  compute1:
+    container_name: compute1
     image: compute
     hostname: compute1
     privileged: true
     depends_on:
-      - static-slurmctl
+      - slurmctl
     networks:
       - clusternet
     volumes:
-      - ./example/slurm.static.conf:/etc/slurm.conf
+      - ./example/slurm.conf:/etc/slurm.conf
       - ./home:/home/user
-      - ./munge-static:/etc/munge
-      - ./munge-db:/etc/munge-db
+      - ./munge:/etc/munge
 
   backend:
     container_name: backend
@@ -124,4 +68,4 @@ services:
 
 networks:
   clusternet:
-    name: cloudnet
+    name: clusternet
