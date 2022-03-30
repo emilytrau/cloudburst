@@ -1,0 +1,17 @@
+#cloud-config
+
+hostname: {{ hostname }}
+
+users:
+  - default
+ssh_authorized_keys:
+  - {{ user_ssh_key }}
+
+package_update: true
+# package_upgrade: true
+packages:
+  - openmpi-bin
+
+runcmd:
+  # Install persistent SSH host keys
+  - echo "{{ host_keys }}" | base64 -d | sudo tar -xC /etc/ssh

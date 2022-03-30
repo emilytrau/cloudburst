@@ -1,0 +1,4 @@
+config:
+  tailscale:apiKey:
+    secure: AAABAFyT/vD6I2N+07iLIbHov7OIznSOwgft77LhLksOP3GqrEeYgMtGTh9jtnrCiaIQ8iFhSbMS/rQRtynZT6auNEGrldCk1A==
+  tailscale:tailnet: monash-cloudburst.org.github
