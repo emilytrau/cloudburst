@@ -35,7 +35,7 @@ tailnet_key = tailscale.TailnetKey('tailnet-key',
 
 munge_key = local.Command('munge-key',
     create='mungekey -cfk /tmp/munge.key && base64 -w0 /tmp/munge.key && rm /tmp/munge.key',
-	opts=ResourceOptions(additional_secret_outputs=['stdout'])).stdout
+	opts=ResourceOptions(additional_secret_outputs=['stdout'], ignore_changes=['stdout'])).stdout
 
 def create_instance(hostname, node_type):
 	host_keys = local.Command(f'ssh-host-keys-{hostname}',
@@ -44,7 +44,7 @@ def create_instance(hostname, node_type):
 			&& tar -cC /tmp/hostkey-{hostname} . | base64 -w0 \
 			&& rm -rf /tmp/hostkey-{hostname}
 		""",
-		opts=ResourceOptions(additional_secret_outputs=['stdout'])).stdout
+		opts=ResourceOptions(additional_secret_outputs=['stdout'], ignore_changes=['stdout'])).stdout
 
 	pulumi.export(f'{hostname}-key', host_keys)
 	
