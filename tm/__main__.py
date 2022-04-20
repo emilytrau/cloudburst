@@ -6,7 +6,7 @@ from pulumi_command import local
 from pulumi_openstack import compute
 import pulumi_tailscale as tailscale
 
-FLAVOR = 't3.small'
+FLAVOR = 't3.xsmall'
 IMAGE = '356ff1ed-5960-4ac2-96a1-0c0198e6a999' # NeCTAR Ubuntu 20.04 LTS (Focal)
 USER_SSH_KEY = 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAxs0LYg6V2IvrwaW74RCzoZlvSAXS5fed9/sFMz51DPqGAw420Q2jPsvKsSAbOlLD3ZjTu8Xy+TPQSbFJgSp448/s9aXWtmCioP5zNrzorShvhzH9VnyraWwjgAEscr09xSelDZ7wlFtdoBYkpoOM8FWRWYYCm91yi5xzPHBo/hG6q4mkaLaJC6LdRRNXRkAaCBg/jfcv7jHudoHOVwzcm8w2GOKurI6awM8Tmvy9S2ZNeq9W20SuydnkzVP4Y4Rtss50xLU/r3H7An54Oyv9QeOkEHz0M7FHUZ2NOUVivOTCt2uJkzUOR5BQR7asFEaZ7AyEV3Y+MpeHtwq9TtW0Fw== EmilyTrau'
 
