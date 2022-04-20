@@ -22,12 +22,14 @@ keypair = compute.Keypair('tm-keypair',
 
 # Enable MagicDNS
 tailnet_nameservers = tailscale.DnsNameservers("tailnet-dns-nameservers", nameservers=[
-    "8.8.8.8",
-    "8.8.4.4",
-])
+		"8.8.8.8",
+		"8.8.4.4",
+	],
+	opts=ResourceOptions(retain_on_delete=True)
+)
 tailscale.DnsPreferences("tailnet-dns-preferences",
 	magic_dns=True,
-	opts=ResourceOptions(depends_on=[tailnet_nameservers]))
+	opts=ResourceOptions(depends_on=[tailnet_nameservers], retain_on_delete=True))
 
 tailnet_key = tailscale.TailnetKey('tailnet-key',
     ephemeral=True,
