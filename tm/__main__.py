@@ -3,12 +3,12 @@ import pulumi
 from pulumi import Output, ResourceOptions
 import pulumi_cloudinit as cloudinit
 from pulumi_command import local
-from pulumi_openstack import compute
+from pulumi_openstack import compute, networking
 import pulumi_tailscale as tailscale
 
 FLAVOR = 't3.xsmall'
 IMAGE = '356ff1ed-5960-4ac2-96a1-0c0198e6a999' # NeCTAR Ubuntu 20.04 LTS (Focal)
-USER_SSH_KEY = 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAxs0LYg6V2IvrwaW74RCzoZlvSAXS5fed9/sFMz51DPqGAw420Q2jPsvKsSAbOlLD3ZjTu8Xy+TPQSbFJgSp448/s9aXWtmCioP5zNrzorShvhzH9VnyraWwjgAEscr09xSelDZ7wlFtdoBYkpoOM8FWRWYYCm91yi5xzPHBo/hG6q4mkaLaJC6LdRRNXRkAaCBg/jfcv7jHudoHOVwzcm8w2GOKurI6awM8Tmvy9S2ZNeq9W20SuydnkzVP4Y4Rtss50xLU/r3H7An54Oyv9QeOkEHz0M7FHUZ2NOUVivOTCt2uJkzUOR5BQR7asFEaZ7AyEV3Y+MpeHtwq9TtW0Fw== EmilyTrau'
+USER_SSH_KEY = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCm2ewMbK6crRF5FSnf4m4rRKxdqAmjmyJqlesj7+w/ahk+PTYbTniThr4+7kc9fzSwToaMDtxOQfq2jIhYeIWHjD3XaHtxeI2kIbBnL8UuBfKAHE2VzD+6sBv+MeHWAGOwP/TKWe/eyfSfJvt54WUtYgH7x2WtrYeK/WSdESydgPaoYBBfiChhFK2s6krlrxDDcMWLPCLDxZSbEvDU9yOY4DXcA4Bd0MHR5PLWX0pLKaHXcZz8E68QXmJ7LqqZ7M1RxGAAaw17u18j2F3PnvXPZLhGALLEVpgDnl3XUz5TrwPGFNGgwq41O0w+kFsoo5TFT0teqF3ZgovUntaGv/sPUNCLsw5HM+ShgCKEOpx0ZrctNYIzSZhxMDB7UBNHBuGaf9028zvscNQEzGtZmfxoygWvmHqa+S0R5rLTbaVnGCNigQMi5z4JFxSnSBA+7Fp9VS7M63tjgpmaAJM5HDQQA/RcelTrEOuuDliDtHaP08NYsfnEUFw6OP7CNequylc= gitpod@emilytrau-cloudburst-zojmwdxkbos'
 
 jinja_env = jinja2.Environment(
 		loader=jinja2.FileSystemLoader("cloudinit"),
@@ -35,9 +35,23 @@ tailnet_key = tailscale.TailnetKey('tailnet-key',
     ephemeral=True,
     reusable=True).key
 
-munge_key = local.Command('munge-key',
-    create='mungekey -cfk /tmp/munge.key && base64 -w0 /tmp/munge.key && rm /tmp/munge.key',
-	opts=ResourceOptions(additional_secret_outputs=['stdout'], ignore_changes=['stdout'])).stdout
+security_group = networking.SecGroup('tm-security-group')
+security_group_ssh = networking.SecGroupRule(
+	'tm-security-group-ssh',
+	direction='ingress',
+	ethertype='IPv4',
+	security_group_id=security_group.id,
+	port_range_max=22,
+    port_range_min=22,
+    protocol="tcp",
+    remote_ip_prefix="0.0.0.0/0",
+)
+
+munge_key = local.Command(
+	'munge-key',
+  create='mungekey -cfk /tmp/munge.key -b 4096 && base64 -w0 /tmp/munge.key && rm /tmp/munge.key',
+	opts=ResourceOptions(additional_secret_outputs=['stdout'], ignore_changes=['stdout'])
+).stdout
 
 def create_instance(hostname, node_type):
 	host_keys = local.Command(f'ssh-host-keys-{hostname}',
@@ -54,9 +68,9 @@ def create_instance(hostname, node_type):
 		# print(args)
 		templates = [t.render(**args) for t in cloudinit_templates]
 		import sys
-		# sys.stdout.write(args['host_keys'])
-		# for t in templates:
-		# 	sys.stdout.write(t)
+		# sys.stdout.write(args['munge_key'])
+		for t in templates:
+			sys.stdout.write(t)
 		config_parts = [
 			cloudinit.GetConfigPartArgs(
 				content=template,
@@ -81,10 +95,11 @@ def create_instance(hostname, node_type):
 		flavor_name=FLAVOR,
 		image_id=IMAGE,
 		key_pair=keypair.name,
+		security_groups=[security_group.name],
 		user_data=cloudinit_config,
 		stop_before_destroy=True)
 	
 	pulumi.export(f'{hostname}-ip', instance.access_ip_v4)
 
 create_instance('tm-login', node_type='login')
-create_instance('tm-compute1', node_type='compute')
+# create_instance('tm-compute1', node_type='compute')

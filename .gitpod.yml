@@ -1,9 +1,8 @@
 tasks:
   - before: |
+      nix-env -iA nixpkgs.munge nixpkgs.ansible
+
       # Install Pulumi
       curl -fsSL https://get.pulumi.com | sh
       echo 'export PATH="/home/gitpod/.pulumi/bin:$PATH"' >> ~/.bashrc
       source ~/.bashrc
-
-      # Install MUNGE tools
-      nix-env -iA nixpkgs.munge

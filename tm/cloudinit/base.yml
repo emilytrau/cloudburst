@@ -7,11 +7,17 @@ users:
 ssh_authorized_keys:
   - {{ user_ssh_key }}
 
-package_update: true
-# package_upgrade: true
-packages:
-  - openmpi-bin
-
 runcmd:
   # Install persistent SSH host keys
   - echo "{{ host_keys }}" | base64 -d | sudo tar -xC /etc/ssh
+  # MUNGE doesn't detect hostname properly unless we set it explicitly??
+  # Appends entry for our hostname at the top of hostsfile
+  - sudo sed -i "1s/^/127.0.1.1     {{ hostname }}\n/" /etc/hosts
+
+write_files:
+  - encoding: base64
+    content: {{ munge_key }}
+    owner: munge:munge
+    path: /etc/munge/munge.key
+    permissions: "0440"
+    defer: true

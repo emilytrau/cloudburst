@@ -1,0 +1,24 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Install OpenMPI
+      ansible.builtin.package:
+        name: openmpi-bin
+        state: present
+
+    - name: Install SLURM client
+      ansible.builtin.package:
+        name:
+          - munge
+          - slurmd
+          - slurm-client
+        state: present
+    - name: Create SLURM config directories if it does not exist
+      ansible.builtin.file:
+        path:
+          - /var/spool/slurmd
+          - /var/spool/slurmctld
+        state: directory
+        mode: '0755'
+        owner: slurm
+        group: slurm
