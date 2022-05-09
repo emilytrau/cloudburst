@@ -1,0 +1,8 @@
+[Unit]
+Description=cloudburstd
+
+[Service]
+ExecStart=/usr/local/bin/cloudburstd
+
+[Install]
+WantedBy=multi-user.target

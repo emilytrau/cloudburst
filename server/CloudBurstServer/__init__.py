@@ -12,6 +12,9 @@ import openstack.network.v2.network
 from pydantic import BaseModel
 import sys
 import uuid
+import subprocess
+import json
+import time
 
 class DockerBackend:
     def __init__(self) -> None:
@@ -137,8 +140,9 @@ class OpenStackBackend:
             image_id=self.image.id,
             flavor_id=self.flavor.id,
             availability_zone=self.availability_zone,
-            networks=[{"uuid": self.network.id}],
-            security_groups=[],
+            # networks=[{"uuid": self.network.id}],
+            networks=[],
+            security_groups=[{"name": "tm-cloud"}],
             key_name=self.keypair.name if self.keypair is not None else None,
             metadata={
                 # Mark that we manage this instance
@@ -148,7 +152,8 @@ class OpenStackBackend:
             },
         )
         server = self.connection.compute.wait_for_server(server)
-        ip = server.addresses[self.network.name][0]["addr"]
+        # ip = server.addresses[self.network.name][0]["addr"]
+        ip = server.access_ipv4
         return ip, server_id
 
     
@@ -188,12 +193,20 @@ class NodeList(BaseModel):
 @app.post("/create")
 def create_nodes(body: NodeList):
     node_details = {}
+    deploy_details = []
     for node in body.nodes:
         ip, id = backend.create_node(node)
         node_details[node] = {
             "ip": ip,
             "instance_id": id,
         }
+        deploy_details.append({
+            "hostname": node,
+            "ip": ip,
+        })
+    
+    # time.sleep(20)
+    subprocess.run(["python3", "/etc/ansible/deploy_node.py", json.dumps({"compute": deploy_details})], check=True)
 
     return {"nodes": node_details}
 

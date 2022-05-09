@@ -30,7 +30,7 @@ def resume():
     ip = details["ip"]
     instance_id = details["instance_id"]
     # TODO: tag instance id in slurm metadata
-    subprocess.run(["scontrol", "update", f"NodeName={name}", f"NodeAddr={ip}"])
+    subprocess.run(["scontrol", "update", f"NodeName={name}", f"NodeAddr={ip}"], check=True)
   os.system("scontrol reconfigure") # TODO: figure out why we need this
 
 def resume_fail():

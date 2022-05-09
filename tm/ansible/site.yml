@@ -1,24 +1,222 @@
 - hosts: all
   become: true
   tasks:
+    - name: Install python
+      ansible.builtin.package:
+        name:
+          - python3
+          - python3-pip
+
     - name: Install OpenMPI
       ansible.builtin.package:
         name: openmpi-bin
         state: present
 
-    - name: Install SLURM client
+- name: Setup NFS server
+  hosts: login
+  become: true
+  tasks:
+    - name: Install NFS package
+      ansible.builtin.package:
+        name: nfs-kernel-server
+    - name: Create share directory
+      ansible.builtin.file:
+        path: /mnt/share
+        state: directory
+        mode: '0777'
+        owner: nobody
+        group: nogroup
+    - name: Create exports file
+      ansible.builtin.copy:
+        dest: /etc/exports
+        content: '/mnt/share *(rw,sync,no_subtree_check)'
+    - name: Reload exports
+      ansible.builtin.command: exportfs -a
+    - name: Restart NFS server
+      ansible.builtin.systemd:
+        state: restarted
+        name: nfs-kernel-server
+
+- name: Setup NFS client
+  hosts: all
+  become: true
+  tasks:
+    - name: Install NFS client package
+      ansible.builtin.package:
+        name: nfs-common
+    - name: Create share directory
+      ansible.builtin.file:
+        path: /share
+        state: directory
+        mode: '0777'
+        owner: nobody
+        group: nogroup
+    - name: Mount an NFS volume
+      ansible.posix.mount:
+        src: '{{ SLURMCTL_IP }}:/mnt/share'
+        path: /share
+        opts: rw,sync,hard,intr
+        state: mounted
+        fstype: nfs
+
+- name: Install MUNGE
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install MUNGE
+      ansible.builtin.package:
+        name: munge
+    
+    - name: Copy MUNGE key
+      ansible.builtin.copy:
+        src: /etc/munge/munge.key
+        dest: /etc/munge/munge.key
+        owner: munge
+        group: munge
+        mode: '600'
+      when: "'/etc/munge/munge.key' is file"
+    
+    - name: Ensure munge is running
+      ansible.builtin.systemd:
+        state: restarted
+        name: munge
+
+- name: Setup ansible
+  hosts: login
+  become: true
+
+  tasks:
+    - name: Install python
       ansible.builtin.package:
         name:
-          - munge
-          - slurmd
-          - slurm-client
-        state: present
-    - name: Create SLURM config directories if it does not exist
+          - python3
+          - python3-pip
+    
+    - name: Install ansible python
+      ansible.builtin.pip:
+        name:
+          - ansible-runner
+
+    - name: Install ansible
+      ansible.builtin.package:
+        name:
+          - ansible
+          - rsync
+
+    - name: Copy compute_setup to control node
+      ansible.builtin.copy:
+        src: '.'
+        dest: /etc/ansible
+        owner: slurm
+        group: slurm
+        mode: '600'
+
+- name: Setup cloudburst
+  hosts: login
+  become: true
+
+  tasks:
+    - name: Copy cloudburst to control node
+      ansible.posix.synchronize:
+        src: '../../../'
+        dest: /home/ubuntu/cloudburst
+    
+    - name: Create cloudburst config directory if it does not exist
       ansible.builtin.file:
-        path:
-          - /var/spool/slurmd
-          - /var/spool/slurmctld
+        path: /etc/cloudburst
         state: directory
         mode: '0755'
         owner: slurm
         group: slurm
+    
+    - name: Copy cloudburst config to control node
+      ansible.builtin.copy:
+        src: cloudburst.ini
+        dest: /etc/cloudburst/cloudburst.ini
+        owner: slurm
+        group: slurm
+        mode: '640'
+    
+    - name: Copy cloudburstd config to control node
+      ansible.builtin.copy:
+        src: cloudburstd.ini
+        dest: /etc/cloudburst/cloudburstd.ini
+        owner: slurm
+        group: slurm
+        mode: '640'
+
+    - name: Copy clouds.yaml to control node
+      ansible.builtin.copy:
+        src: clouds.yaml
+        dest: /etc/clouds.yaml
+        owner: slurm
+        group: slurm
+        mode: '640'
+    
+    - name: Install cloudburst
+      ansible.builtin.pip:
+        name:
+          - /home/ubuntu/cloudburst/client
+          - /home/ubuntu/cloudburst/server
+    
+    - name: Copy cloudburstd.service to control node
+      ansible.builtin.copy:
+        src: cloudburstd.service
+        dest: /etc/systemd/system/cloudburstd.service
+
+    - name: Enable cloudburstd service
+      ansible.builtin.systemd:
+        state: restarted
+        name: cloudburstd
+        daemon_reload: true
+        enabled: true
+
+- name: Setup slurm controller
+  hosts: login
+  become: true
+
+  tasks:
+    - name: Install slurm-wlm
+      ansible.builtin.package:
+        name:
+          - slurm-wlm
+    
+    - name: Copy slurm.conf
+      ansible.builtin.copy:
+        src: slurm.conf
+        dest: /etc/slurm/slurm.conf
+
+    - name: Ensure slurmctld is running
+      ansible.builtin.systemd:
+        name: slurmctld
+        state: reloaded
+        enabled: true
+
+- name: Setup slurm client
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Map IP of SLURM controller
+      lineinfile:
+        dest: /etc/hosts
+        regexp: '.*tm-login$'
+        line: "{{ SLURMCTL_IP }} tm-login"
+        state: present
+
+    - name: Install slurm-wlm
+      ansible.builtin.package:
+        name:
+          - slurm-wlm
+    
+    - name: Copy slurm.conf
+      ansible.builtin.copy:
+        src: slurm.conf
+        dest: /etc/slurm/slurm.conf
+    
+    - name: Ensure slurmd is running
+      ansible.builtin.systemd:
+        name: slurmd
+        state: reloaded
+        enabled: true
