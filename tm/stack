@@ -1,0 +1,9 @@
+ansible-playbook -u ubuntu --key-file tm/ansible/id_rsa -i tm/ansible/inventory.ini -e SLURMCTL_IP=118.138.235.224 tm/ansible/site.yml
+
+python ansible/deploy_node.py '{"login": [{"hostname": "tm-login", "ip": "118.138.233.157"}], "compute": [{"hostname": "tm-compute1", "ip": "118.138.233.153"}]}'
+
+sudo python3 /etc/ansible/deploy_node.py '{"compute": [{"hostname": "cloud5", "ip": "118.138.237.221"}]}'
+
+python ansible/deploy_node.py '{"compute": [{"hostname": "tm-compute1", "ip": "118.138.233.153"}]}'
+
+ssh -i tm/ansible/id_rsa ubuntu@118.138.235.224

@@ -160,7 +160,7 @@ class OpenStackBackend:
     def destroy_node(self, name: str):
         print(f"Trying to destroy node {name}")
         # OpenStack instance names aren't unique so we kill all with this name
-        for server in self.connection.servers(details=False):
+        for server in self.connection.compute.servers(details=False):
             if server.name == name:
                 self.connection.compute.delete_server(server)
 

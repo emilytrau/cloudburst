@@ -9,7 +9,10 @@
 
     - name: Install OpenMPI
       ansible.builtin.package:
-        name: openmpi-bin
+        name:
+          - openmpi-bin
+          - libopenmpi-dev
+          - build-essential
         state: present
 
 - name: Setup NFS server
@@ -108,8 +111,6 @@
       ansible.builtin.copy:
         src: '.'
         dest: /etc/ansible
-        owner: slurm
-        group: slurm
         mode: '600'
 
 - name: Setup cloudburst
@@ -127,31 +128,23 @@
         path: /etc/cloudburst
         state: directory
         mode: '0755'
-        owner: slurm
-        group: slurm
     
     - name: Copy cloudburst config to control node
       ansible.builtin.copy:
         src: cloudburst.ini
         dest: /etc/cloudburst/cloudburst.ini
-        owner: slurm
-        group: slurm
         mode: '640'
     
     - name: Copy cloudburstd config to control node
       ansible.builtin.copy:
         src: cloudburstd.ini
         dest: /etc/cloudburst/cloudburstd.ini
-        owner: slurm
-        group: slurm
         mode: '640'
 
     - name: Copy clouds.yaml to control node
       ansible.builtin.copy:
         src: clouds.yaml
         dest: /etc/clouds.yaml
-        owner: slurm
-        group: slurm
         mode: '640'
     
     - name: Install cloudburst
